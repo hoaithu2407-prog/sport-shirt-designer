@@ -34,7 +34,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-wide">THIẾT KẾ & MOCKUP ÁO THỂ THAO</h1>
-                    <p class="text-xs text-slate-400">Tự động khử nền trắng form áo & lồng ghép artwork chuẩn xác</p>
+                    <p class="text-xs text-slate-400">Cắt vùng hiển thị form áo & lồng ghép artwork chuẩn xác</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -55,23 +55,23 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                    Ảnh Form Áo Mẫu (Tự động khử nền trắng)
+                    Ảnh Form Áo Tổng Thể (Tự khử nền trắng)
                 </h2>
                 <div class="flex items-center gap-4">
                     <label class="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 text-center transition flex flex-col items-center justify-center gap-1">
                         <i class="fa-solid fa-cloud-arrow-up text-blue-500 text-xl"></i>
-                        <span class="text-xs font-medium text-slate-600" id="mockup-file-label">Chọn ảnh form áo mẫu...</span>
+                        <span class="text-xs font-medium text-slate-600" id="mockup-file-label">Chọn ảnh form áo tổng thể...</span>
                         <input type="file" id="mockup-upload" accept="image/*" class="hidden" onchange="loadAndProcessMockup(event)">
                     </label>
                     <button onclick="resetMockup()" class="text-xs text-rose-500 hover:underline px-2 py-1">Xóa</button>
                 </div>
             </div>
 
-            <!-- 2. Chọn Vị Trí Thiết Kế -->
+            <!-- 2. Chọn Vị Trí Thiết Kế & Cắt Vùng -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-                    Chọn Vị Trí Muốn Ghép & Ghi Chú
+                    Chọn Vị Trí & Căn Chỉnh Vùng Áo
                 </h2>
                 
                 <!-- Tab lựa chọn vị trí -->
@@ -90,6 +90,21 @@
                     </button>
                 </div>
 
+                <!-- Cấu hình vùng cắt (Crop Frame cho từng mặt) -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 space-y-2">
+                    <span class="text-xs font-semibold text-slate-700 block">Cắt khung hiển thị cho <span id="crop-pos-title" class="text-blue-600">Mặt Trước</span>:</span>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div>
+                            <label class="text-slate-500 block">Vị trí ngang (Left: <span id="crop-l-val">0</span>%)</label>
+                            <input type="range" id="crop-l" min="0" max="90" value="0" class="w-full accent-blue-600" oninput="updateCrop()">
+                        </div>
+                        <div>
+                            <label class="text-slate-500 block">Độ rộng (Width: <span id="crop-w-val">100</span>%)</label>
+                            <input type="range" id="crop-w" min="10" max="100" value="100" class="w-full accent-blue-600" oninput="updateCrop()">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Form cấu hình cho vị trí đang chọn -->
                 <div class="space-y-4 pt-2 border-t border-slate-100">
                     <div>
@@ -104,7 +119,7 @@
                         </div>
                     </div>
 
-                    <!-- Sliders điều chỉnh tỉ lệ, vị trí -->
+                    <!-- Sliders điều chỉnh tỉ lệ, vị trí artwork -->
                     <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <div>
                             <label class="text-[11px] font-medium text-slate-600 block mb-1">Tỉ lệ kích thước (<span id="scale-val">100</span>%)</label>
@@ -148,11 +163,11 @@
                     <span class="text-xs text-slate-400 italic">Mẹo: Kéo trực tiếp họa tiết để căn chỉnh vào form áo</span>
                 </div>
 
-                <!-- Khung chứa Canvas / Preview ảnh (có nền caro checkerboard để dễ nhận diện nền trong suốt) -->
+                <!-- Khung chứa Canvas / Preview ảnh -->
                 <div id="canvas-container" class="relative w-full aspect-[4/5] checkerboard rounded-xl overflow-hidden flex items-center justify-center border border-slate-300 shadow-inner select-none">
                     <div id="mockup-placeholder" class="text-slate-500 text-center p-6 flex flex-col items-center justify-center bg-white/90 z-30 inset-absolute w-full h-full absolute">
                         <i class="fa-solid fa-shirt text-5xl mb-2 text-slate-400"></i>
-                        <p class="text-sm">Vui lòng tải ảnh Form áo mẫu ở mục 1</p>
+                        <p class="text-sm">Vui lòng tải ảnh Form áo tổng thể ở mục 1</p>
                     </div>
 
                     <!-- 1. Lớp Artwork nằm ở dưới -->
@@ -161,8 +176,10 @@
                         <div class="absolute inset-0 border border-blue-400/50 rounded pointer-events-none"></div>
                     </div>
 
-                    <!-- 2. Lớp Form áo mẫu đã khử nền trắng nằm ở TRÊN cùng -->
-                    <img id="mockup-preview-img" src="" alt="Form áo mẫu" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-20 hidden">
+                    <!-- 2. Lớp Form áo mẫu đã khử nền & cắt khung (Clipping Frame) nằm ở TRÊN cùng -->
+                    <div id="mockup-frame-wrapper" class="absolute inset-0 pointer-events-none z-20 overflow-hidden hidden">
+                        <img id="mockup-preview-img" src="" alt="Form áo mẫu" class="absolute w-full h-full object-fill pointer-events-none">
+                    </div>
                 </div>
             </div>
 
@@ -182,17 +199,17 @@
         KOS Sport Shirt Designer Tool - Phát triển cho Lê Thị Hoài Thu
     </footer>
 
-    <!-- JavaScript Xử lý tự động tách nền và lồng ghép -->
+    <!-- JavaScript -->
     <script>
         const positions = {
-            front: { name: "Mặt Trước", artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
-            back:  { name: "Mặt Sau",   artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
-            left:  { name: "Tay Trái",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
-            right: { name: "Tay Phải",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" }
+            front: { name: "Mặt Trước", artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", cropL: 0, cropW: 50 },
+            back:  { name: "Mặt Sau",   artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", cropL: 50, cropW: 50 },
+            left:  { name: "Tay Trái",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", cropL: 0, cropW: 100 },
+            right: { name: "Tay Phải",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", cropL: 0, cropW: 100 }
         };
 
         let currentPos = 'front';
-        let mockupImageSrc = '';
+        let rawMockupImageSrc = '';
 
         document.addEventListener('DOMContentLoaded', () => {
             updateUI();
@@ -213,7 +230,15 @@
             document.getElementById('current-pos-name').innerText = data.name;
             document.getElementById('current-pos-name-2').innerText = data.name;
             document.getElementById('preview-title-pos').innerText = data.name;
+            document.getElementById('crop-pos-title').innerText = data.name;
 
+            // Crop sliders
+            document.getElementById('crop-l').value = data.cropL;
+            document.getElementById('crop-l-val').innerText = data.cropL;
+            document.getElementById('crop-w').value = data.cropW;
+            document.getElementById('crop-w-val').innerText = data.cropW;
+
+            // Transform sliders
             document.getElementById('range-scale').value = data.scale;
             document.getElementById('scale-val').innerText = data.scale;
             document.getElementById('range-rotate').value = data.rotate;
@@ -229,16 +254,17 @@
             const artworkLayer = document.getElementById('artwork-layer');
             const artworkImg = document.getElementById('artwork-preview-img');
 
-            if (data.artwork && mockupImageSrc) {
+            if (data.artwork && rawMockupImageSrc) {
                 artworkImg.src = data.artwork;
                 artworkLayer.classList.remove('hidden');
                 applyTransformToLayer();
             } else {
                 artworkLayer.classList.add('hidden');
             }
+
+            applyCropToMockup();
         }
 
-        // Tự động xử lý ảnh form áo: Khử nền trắng thành trong suốt
         function loadAndProcessMockup(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -247,7 +273,6 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    // Tạo canvas ảo để xử lý pixel ảnh
                     const canvas = document.createElement('canvas');
                     canvas.width = img.width;
                     canvas.height = img.height;
@@ -257,25 +282,18 @@
                     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const pixels = imgData.data;
 
-                    // Thuật toán: chuyển các pixel màu trắng (hoặc gần trắng) thành trong suốt (alpha = 0)
                     for (let i = 0; i < pixels.length; i += 4) {
-                        const r = pixels[i];
-                        const g = pixels[i + 1];
-                        const b = pixels[i + 2];
-
-                        // Nếu màu gần trắng (R, G, B > 230)
-                        if (r > 230 && g > 230 && b > 230) {
-                            pixels[i + 3] = 0; // Đặt độ trong suốt bằng 0
+                        if (pixels[i] > 230 && pixels[i + 1] > 230 && pixels[i + 2] > 230) {
+                            pixels[i + 3] = 0;
                         }
                     }
 
                     ctx.putImageData(imgData, 0, 0);
-                    mockupImageSrc = canvas.toDataURL('image/png');
+                    rawMockupImageSrc = canvas.toDataURL('image/png');
 
-                    // Hiển thị lên khung preview
                     const mockupImg = document.getElementById('mockup-preview-img');
-                    mockupImg.src = mockupImageSrc;
-                    mockupImg.classList.remove('hidden');
+                    mockupImg.src = rawMockupImageSrc;
+                    document.getElementById('mockup-frame-wrapper').classList.remove('hidden');
                     document.getElementById('mockup-placeholder').classList.add('hidden');
                     document.getElementById('mockup-file-label').innerText = file.name;
                     updateUI();
@@ -286,13 +304,42 @@
         }
 
         function resetMockup() {
-            mockupImageSrc = '';
-            document.getElementById('mockup-preview-img').src = '';
-            document.getElementById('mockup-preview-img').classList.add('hidden');
+            rawMockupImageSrc = '';
+            document.getElementById('mockup-frame-wrapper').classList.add('hidden');
             document.getElementById('mockup-placeholder').classList.remove('hidden');
-            document.getElementById('mockup-file-label').innerText = "Chọn ảnh form áo mẫu...";
+            document.getElementById('mockup-file-label').innerText = "Chọn ảnh form áo tổng thể...";
             document.getElementById('mockup-upload').value = '';
             updateUI();
+        }
+
+        function updateCrop() {
+            const data = positions[currentPos];
+            data.cropL = parseInt(document.getElementById('crop-l').value);
+            data.cropW = parseInt(document.getElementById('crop-w').value);
+            document.getElementById('crop-l-val').innerText = data.cropL;
+            document.getElementById('crop-w-val').innerText = data.cropW;
+            applyCropToMockup();
+        }
+
+        function applyCropToMockup() {
+            if (!rawMockupImageSrc) return;
+            const data = positions[currentPos];
+            const wrapper = document.getElementById('mockup-frame-wrapper');
+            const img = document.getElementById('mockup-preview-img');
+
+            // Định vị khung crop dựa trên % chiều rộng và vị trí left
+            wrapper.style.left = data.cropL + '%';
+            wrapper.style.width = data.cropW + '%';
+            wrapper.style.top = '0%';
+            wrapper.style.height = '100%';
+
+            // Dịch chuyển ảnh bên trong wrapper để khớp đúng vùng áo
+            const shiftPercent = (data.cropL / data.cropW) * 100;
+            const scalePercent = (100 / data.cropW) * 100;
+            img.style.width = scalePercent + '%';
+            img.style.maxWidth = 'none';
+            img.style.left = (-shiftPercent) + '%';
+            img.style.position = 'absolute';
         }
 
         function loadArtworkImage(event) {
