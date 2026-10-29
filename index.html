@@ -13,6 +13,14 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .checkerboard {
+            background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%), 
+                              linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #e2e8f0 75%), 
+                              linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
@@ -26,7 +34,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-wide">THIẾT KẾ & MOCKUP ÁO THỂ THAO</h1>
-                    <p class="text-xs text-slate-400">Ướm artwork vào trong khung áo mẫu & ghi chú chi tiết</p>
+                    <p class="text-xs text-slate-400">Tự động khử nền trắng form áo & lồng ghép artwork chuẩn xác</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -47,13 +55,13 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                    Ảnh Khung Mẫu Áo (Mockup Frame)
+                    Ảnh Form Áo Mẫu (Tự động khử nền trắng)
                 </h2>
                 <div class="flex items-center gap-4">
                     <label class="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 text-center transition flex flex-col items-center justify-center gap-1">
                         <i class="fa-solid fa-cloud-arrow-up text-blue-500 text-xl"></i>
-                        <span class="text-xs font-medium text-slate-600" id="mockup-file-label">Chọn ảnh khung áo mẫu...</span>
-                        <input type="file" id="mockup-upload" accept="image/*" class="hidden" onchange="loadMockupImage(event)">
+                        <span class="text-xs font-medium text-slate-600" id="mockup-file-label">Chọn ảnh form áo mẫu...</span>
+                        <input type="file" id="mockup-upload" accept="image/*" class="hidden" onchange="loadAndProcessMockup(event)">
                     </label>
                     <button onclick="resetMockup()" class="text-xs text-rose-500 hover:underline px-2 py-1">Xóa</button>
                 </div>
@@ -115,12 +123,8 @@
                             <input type="range" id="range-y" min="-400" max="400" value="0" class="w-full accent-blue-600" oninput="updateTransform()">
                         </div>
                     </div>
-                    <div class="flex justify-between items-center text-xs">
-                        <label class="flex items-center gap-2 cursor-pointer text-slate-600">
-                            <input type="checkbox" id="blend-mode-check" onchange="toggleBlendMode()" class="rounded accent-blue-600"> 
-                            Chế độ hòa trộn khung áo (giúp lộ nét vẽ)
-                        </label>
-                        <button onclick="resetCurrentTransform()" class="text-blue-600 hover:underline">Đặt lại vị trí</button>
+                    <div class="text-right">
+                        <button onclick="resetCurrentTransform()" class="text-xs text-blue-600 hover:underline">Đặt lại vị trí mặc định</button>
                     </div>
 
                     <!-- Ô ghi chú riêng cho vị trí này -->
@@ -144,11 +148,11 @@
                     <span class="text-xs text-slate-400 italic">Mẹo: Kéo trực tiếp họa tiết để căn chỉnh vào form áo</span>
                 </div>
 
-                <!-- Khung chứa Canvas / Preview ảnh -->
-                <div id="canvas-container" class="relative w-full aspect-[4/5] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-slate-300 shadow-inner select-none">
-                    <div id="mockup-placeholder" class="text-slate-400 text-center p-6 flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-shirt text-5xl mb-2 text-slate-300"></i>
-                        <p class="text-sm">Vui lòng tải ảnh Khung áo mẫu ở mục 1</p>
+                <!-- Khung chứa Canvas / Preview ảnh (có nền caro checkerboard để dễ nhận diện nền trong suốt) -->
+                <div id="canvas-container" class="relative w-full aspect-[4/5] checkerboard rounded-xl overflow-hidden flex items-center justify-center border border-slate-300 shadow-inner select-none">
+                    <div id="mockup-placeholder" class="text-slate-500 text-center p-6 flex flex-col items-center justify-center bg-white/90 z-30 inset-absolute w-full h-full absolute">
+                        <i class="fa-solid fa-shirt text-5xl mb-2 text-slate-400"></i>
+                        <p class="text-sm">Vui lòng tải ảnh Form áo mẫu ở mục 1</p>
                     </div>
 
                     <!-- 1. Lớp Artwork nằm ở dưới -->
@@ -157,8 +161,8 @@
                         <div class="absolute inset-0 border border-blue-400/50 rounded pointer-events-none"></div>
                     </div>
 
-                    <!-- 2. Lớp Khung Áo Mẫu nằm đè lên TRÊN cùng (Frame) -->
-                    <img id="mockup-preview-img" src="" alt="Khung áo mẫu" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-20 hidden">
+                    <!-- 2. Lớp Form áo mẫu đã khử nền trắng nằm ở TRÊN cùng -->
+                    <img id="mockup-preview-img" src="" alt="Form áo mẫu" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-20 hidden">
                 </div>
             </div>
 
@@ -178,13 +182,13 @@
         KOS Sport Shirt Designer Tool - Phát triển cho Lê Thị Hoài Thu
     </footer>
 
-    <!-- JavaScript -->
+    <!-- JavaScript Xử lý tự động tách nền và lồng ghép -->
     <script>
         const positions = {
-            front: { name: "Mặt Trước", artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", blend: false },
-            back:  { name: "Mặt Sau",   artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", blend: false },
-            left:  { name: "Tay Trái",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", blend: false },
-            right: { name: "Tay Phải",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "", blend: false }
+            front: { name: "Mặt Trước", artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
+            back:  { name: "Mặt Sau",   artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
+            left:  { name: "Tay Trái",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
+            right: { name: "Tay Phải",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" }
         };
 
         let currentPos = 'front';
@@ -220,12 +224,10 @@
             document.getElementById('y-val').innerText = data.y;
 
             document.getElementById('pos-note').value = data.note;
-            document.getElementById('blend-mode-check').checked = data.blend;
             document.getElementById('artwork-file-label').innerText = data.artwork ? "Đã có file họa tiết" : "Tải lên file họa tiết...";
 
             const artworkLayer = document.getElementById('artwork-layer');
             const artworkImg = document.getElementById('artwork-preview-img');
-            const mockupImg = document.getElementById('mockup-preview-img');
 
             if (data.artwork && mockupImageSrc) {
                 artworkImg.src = data.artwork;
@@ -234,20 +236,43 @@
             } else {
                 artworkLayer.classList.add('hidden');
             }
-
-            if (data.blend) {
-                mockupImg.style.mixBlendMode = 'multiply';
-            } else {
-                mockupImg.style.mixBlendMode = 'normal';
-            }
         }
 
-        function loadMockupImage(event) {
+        // Tự động xử lý ảnh form áo: Khử nền trắng thành trong suốt
+        function loadAndProcessMockup(event) {
             const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    mockupImageSrc = e.target.result;
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Tạo canvas ảo để xử lý pixel ảnh
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const pixels = imgData.data;
+
+                    // Thuật toán: chuyển các pixel màu trắng (hoặc gần trắng) thành trong suốt (alpha = 0)
+                    for (let i = 0; i < pixels.length; i += 4) {
+                        const r = pixels[i];
+                        const g = pixels[i + 1];
+                        const b = pixels[i + 2];
+
+                        // Nếu màu gần trắng (R, G, B > 230)
+                        if (r > 230 && g > 230 && b > 230) {
+                            pixels[i + 3] = 0; // Đặt độ trong suốt bằng 0
+                        }
+                    }
+
+                    ctx.putImageData(imgData, 0, 0);
+                    mockupImageSrc = canvas.toDataURL('image/png');
+
+                    // Hiển thị lên khung preview
                     const mockupImg = document.getElementById('mockup-preview-img');
                     mockupImg.src = mockupImageSrc;
                     mockupImg.classList.remove('hidden');
@@ -255,8 +280,9 @@
                     document.getElementById('mockup-file-label').innerText = file.name;
                     updateUI();
                 }
-                reader.readAsDataURL(file);
+                img.src = e.target.result;
             }
+            reader.readAsDataURL(file);
         }
 
         function resetMockup() {
@@ -264,7 +290,7 @@
             document.getElementById('mockup-preview-img').src = '';
             document.getElementById('mockup-preview-img').classList.add('hidden');
             document.getElementById('mockup-placeholder').classList.remove('hidden');
-            document.getElementById('mockup-file-label').innerText = "Chọn ảnh khung áo mẫu...";
+            document.getElementById('mockup-file-label').innerText = "Chọn ảnh form áo mẫu...";
             document.getElementById('mockup-upload').value = '';
             updateUI();
         }
@@ -309,11 +335,6 @@
             const layer = document.getElementById('artwork-layer');
             const scaleFactor = data.scale / 100;
             layer.style.transform = `translate(${data.x}px, ${data.y}px) rotate(${data.rotate}deg) scale(${scaleFactor})`;
-        }
-
-        function toggleBlendMode() {
-            positions[currentPos].blend = document.getElementById('blend-mode-check').checked;
-            updateUI();
         }
 
         function resetCurrentTransform() {
