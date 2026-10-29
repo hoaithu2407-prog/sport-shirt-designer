@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUẢN LÝ THIẾT KẾ ÁO THỂ THAO - KOS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white shadow-md py-4 px-6 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-shirt text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">THIẾT KẾ & MOCKUP ÁO THỂ THAO</h1>
+                    <p class="text-xs text-slate-400">Tùy chỉnh form áo, ướm artwork trước - sau - tay & ghi chú chi tiết</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="exportFullSummary()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-arrow-down"></i> Xuất Báo Cáo & Ghi Chú
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Cột trái: Tải ảnh & Điều khiển (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- 1. Tải ảnh Mockup Tổng Thể -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                    Ảnh Mẫu Áo (Mockup Tổng Thể)
+                </h2>
+                <div class="flex items-center gap-4">
+                    <label class="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 text-center transition flex flex-col items-center justify-center gap-1">
+                        <i class="fa-solid fa-cloud-arrow-up text-blue-500 text-xl"></i>
+                        <span class="text-xs font-medium text-slate-600" id="mockup-file-label">Chọn ảnh mẫu áo...</span>
+                        <input type="file" id="mockup-upload" accept="image/*" class="hidden" onchange="loadMockupImage(event)">
+                    </label>
+                    <button onclick="resetMockup()" class="text-xs text-rose-500 hover:underline px-2 py-1">Xóa ảnh</button>
+                </div>
+            </div>
+
+            <!-- 2. Chọn Vị Trí Thiết Kế -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                    Chọn Vị Trí Muốn Ghép & Ghi Chú
+                </h2>
+                
+                <!-- Tab lựa chọn vị trí -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                    <button onclick="switchTab('front')" id="tab-front" class="tab-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition bg-blue-600 text-white shadow-sm">
+                        Mặt Trước
+                    </button>
+                    <button onclick="switchTab('back')" id="tab-back" class="tab-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100">
+                        Mặt Sau
+                    </button>
+                    <button onclick="switchTab('left')" id="tab-left" class="tab-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100">
+                        Tay Trái
+                    </button>
+                    <button onclick="switchTab('right')" id="tab-right" class="tab-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100">
+                        Tay Phải
+                    </button>
+                </div>
+
+                <!-- Form cấu hình cho vị trí đang chọn -->
+                <div class="space-y-4 pt-2 border-t border-slate-100">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Ảnh thiết kế (Artwork) cho <span id="current-pos-name" class="font-bold text-blue-600">Mặt Trước</span></label>
+                        <div class="flex items-center gap-2">
+                            <label class="flex-1 cursor-pointer bg-slate-50 border border-slate-300 hover:bg-slate-100 rounded-lg px-3 py-2 text-xs text-slate-700 flex items-center justify-between transition">
+                                <span id="artwork-file-label" class="truncate">Tải lên file ảnh thiết kế...</span>
+                                <i class="fa-solid fa-folder-open text-slate-400"></i>
+                                <input type="file" id="artwork-upload" accept="image/*" class="hidden" onchange="loadArtworkImage(event)">
+                            </label>
+                            <button onclick="removeCurrentArtwork()" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-2 rounded-lg text-xs font-medium transition">Xóa</button>
+                        </div>
+                    </div>
+
+                    <!-- Sliders điều chỉnh tỉ lệ, vị trí -->
+                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div>
+                            <label class="text-[11px] font-medium text-slate-600 block mb-1">Tỉ lệ kích thước (<span id="scale-val">100</span>%)</label>
+                            <input type="range" id="range-scale" min="10" max="300" value="100" class="w-full accent-blue-600" oninput="updateTransform()">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-medium text-slate-600 block mb-1">Độ xoay (<span id="rotate-val">0</span>°)</label>
+                            <input type="range" id="range-rotate" min="-180" max="180" value="0" class="w-full accent-blue-600" oninput="updateTransform()">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-medium text-slate-600 block mb-1">Dịch ngang X (<span id="x-val">0</span>px)</label>
+                            <input type="range" id="range-x" min="-300" max="300" value="0" class="w-full accent-blue-600" oninput="updateTransform()">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-medium text-slate-600 block mb-1">Dịch dọc Y (<span id="y-val">0</span>px)</label>
+                            <input type="range" id="range-y" min="-300" max="300" value="0" class="w-full accent-blue-600" oninput="updateTransform()">
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <button onclick="resetCurrentTransform()" class="text-xs text-blue-600 hover:underline">Đặt lại vị trí mặc định</button>
+                    </div>
+
+                    <!-- Ô ghi chú riêng cho vị trí này -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Ghi chú / Yêu cầu chi tiết cho <span id="current-pos-name-2" class="font-bold text-blue-600">Mặt Trước</span></label>
+                        <textarea id="pos-note" rows="2" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ví dụ: Căn logo lên ngực trái, giữ khoảng cách 2cm với cổ áo..." oninput="saveCurrentNote()"></textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Cột phải: Khu vực xem trước Mockup (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
+                        Xem Trước Trực Quan (<span id="preview-title-pos" class="text-blue-600 font-bold">Mặt Trước</span>)
+                    </h2>
+                    <span class="text-xs text-slate-400 italic">Mẹo: Có thể kéo trực tiếp artwork trên ảnh</span>
+                </div>
+
+                <!-- Khung chứa Canvas / Preview ảnh -->
+                <div id="canvas-container" class="relative w-full aspect-[4/5] bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-inner select-none">
+                    <!-- Ảnh mockup nền -->
+                    <img id="mockup-preview-img" src="" alt="Chưa có ảnh mẫu áo" class="max-w-full max-h-full object-contain hidden pointer-events-none">
+                    <div id="mockup-placeholder" class="text-slate-400 text-center p-6 flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-shirt text-5xl mb-2 text-slate-600"></i>
+                        <p class="text-sm">Vui lòng tải lên ảnh Mẫu áo (Mockup tổng thể) ở mục 1</p>
+                    </div>
+
+                    <!-- Artwork overlay có thể kéo thả -->
+                    <div id="artwork-layer" class="absolute cursor-move hidden touch-none" style="transform: translate(0px, 0px) rotate(0deg); scale: 1;">
+                        <img id="artwork-preview-img" src="" alt="Artwork" class="max-w-[250px] max-h-[250px] object-contain drop-shadow-md pointer-events-none">
+                        <!-- Viền khung chọn khi active -->
+                        <div class="absolute inset-0 border-2 border-dashed border-blue-500/80 rounded pointer-events-none"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng hợp ghi chú đơn hàng -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3">Tổng Hợp Ghi Chú & Yêu Cầu Thiết Kế</h3>
+                <div id="summary-notes-list" class="space-y-2 text-xs text-slate-600 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                    <!-- Sẽ được fill tự động bằng JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 mt-auto">
+        KOS Sport Shirt Designer Tool - Phát triển cho Lê Thị Hoài Thu
+    </footer>
+
+    <!-- JavaScript Xử lý giao diện & Kéo thả -->
+    <script>
+        // Dữ liệu cấu hình cho 4 vị trí
+        const positions = {
+            front: { name: "Mặt Trước", artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
+            back:  { name: "Mặt Sau",   artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
+            left:  { name: "Tay Trái",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" },
+            right: { name: "Tay Phải",  artwork: "", x: 0, y: 0, scale: 100, rotate: 0, note: "" }
+        };
+
+        let currentPos = 'front';
+        let mockupImageSrc = '';
+
+        // Khởi tạo
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+            updateSummaryNotes();
+        });
+
+        // Chuyển đổi tab vị trí
+        function switchTab(posKey) {
+            currentPos = posKey;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100";
+            });
+            const activeBtn = document.getElementById(`tab-${posKey}`);
+            activeBtn.className = "tab-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition bg-blue-600 text-white shadow-sm";
+
+            updateUI();
+        }
+
+        // Cập nhật giao diện theo vị trí hiện tại
+        function updateUI() {
+            const data = positions[currentPos];
+            document.getElementById('current-pos-name').innerText = data.name;
+            document.getElementById('current-pos-name-2').innerText = data.name;
+            document.getElementById('preview-title-pos').innerText = data.name;
+
+            // Sliders
+            document.getElementById('range-scale').value = data.scale;
+            document.getElementById('scale-val').innerText = data.scale;
+            document.getElementById('range-rotate').value = data.rotate;
+            document.getElementById('rotate-val').innerText = data.rotate;
+            document.getElementById('range-x').value = data.x;
+            document.getElementById('x-val').innerText = data.x;
+            document.getElementById('range-y').value = data.y;
+            document.getElementById('y-val').innerText = data.y;
+
+            // Note textarea
+            document.getElementById('pos-note').value = data.note;
+
+            // Artwork filename label
+            document.getElementById('artwork-file-label').innerText = data.artwork ? "Đã tải lên file thiết kế" : "Tải lên file ảnh thiết kế...";
+
+            // Hiển thị artwork lên preview
+            const artworkLayer = document.getElementById('artwork-layer');
+            const artworkImg = document.getElementById('artwork-preview-img');
+
+            if (data.artwork && mockupImageSrc) {
+                artworkImg.src = data.artwork;
+                artworkLayer.classList.remove('hidden');
+                applyTransformToLayer();
+            } else {
+                artworkLayer.classList.add('hidden');
+            }
+        }
+
+        // Tải ảnh mockup tổng thể
+        function loadMockupImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mockupImageSrc = e.target.result;
+                    const mockupImg = document.getElementById('mockup-preview-img');
+                    mockupImg.src = mockupImageSrc;
+                    mockupImg.classList.remove('hidden');
+                    document.getElementById('mockup-placeholder').classList.add('hidden');
+                    document.getElementById('mockup-file-label').innerText = file.name;
+                    updateUI();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function resetMockup() {
+            mockupImageSrc = '';
+            document.getElementById('mockup-preview-img').src = '';
+            document.getElementById('mockup-preview-img').classList.add('hidden');
+            document.getElementById('mockup-placeholder').classList.remove('hidden');
+            document.getElementById('mockup-file-label').innerText = "Chọn ảnh mẫu áo...";
+            document.getElementById('mockup-upload').value = '';
+            updateUI();
+        }
+
+        // Tải ảnh artwork cho vị trí hiện tại
+        function loadArtworkImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    positions[currentPos].artwork = e.target.result;
+                    updateUI();
+                    updateSummaryNotes();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeCurrentArtwork() {
+            positions[currentPos].artwork = '';
+            document.getElementById('artwork-upload').value = '';
+            updateUI();
+            updateSummaryNotes();
+        }
+
+        // Cập nhật transform từ slider
+        function updateTransform() {
+            const data = positions[currentPos];
+            data.scale = parseInt(document.getElementById('range-scale').value);
+            data.rotate = parseInt(document.getElementById('range-rotate').value);
+            data.x = parseInt(document.getElementById('range-x').value);
+            data.y = parseInt(document.getElementById('range-y').value);
+
+            document.getElementById('scale-val').innerText = data.scale;
+            document.getElementById('rotate-val').innerText = data.rotate;
+            document.getElementById('x-val').innerText = data.x;
+            document.getElementById('y-val').innerText = data.y;
+
+            applyTransformToLayer();
+        }
+
+        function applyTransformToLayer() {
+            const data = positions[currentPos];
+            const layer = document.getElementById('artwork-layer');
+            const scaleFactor = data.scale / 100;
+            layer.style.transform = `translate(${data.x}px, ${data.y}px) rotate(${data.rotate}deg) scale(${scaleFactor})`;
+        }
+
+        function resetCurrentTransform() {
+            positions[currentPos].x = 0;
+            positions[currentPos].y = 0;
+            positions[currentPos].scale = 100;
+            positions[currentPos].rotate = 0;
+            updateUI();
+        }
+
+        // Lưu ghi chú
+        function saveCurrentNote() {
+            const val = document.getElementById('pos-note').value;
+            positions[currentPos].note = val;
+            updateSummaryNotes();
+        }
+
+        // Cập nhật danh sách tổng hợp ghi chú
+        function updateSummaryNotes() {
+            const container = document.getElementById('summary-notes-list');
+            container.innerHTML = '';
+            let hasAny = false;
+
+            for (let key in positions) {
+                const pos = positions[key];
+                if (pos.note.trim() || pos.artwork) {
+                    hasAny = true;
+                    const div = document.createElement('div');
+                    div.className = "bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex flex-col gap-1";
+                    div.innerHTML = `
+                        <div class="font-semibold text-slate-700 flex items-center justify-between">
+                            <span><i class="fa-solid fa-circle-check text-blue-500 mr-1.5 text-[10px]"></i> ${pos.name}</span>
+                            <span class="text-[10px] text-slate-400 font-normal">${pos.artwork ? 'Đã có Artwork' : 'Chưa có Artwork'}</span>
+                        </div>
+                        <div class="text-slate-600 pl-4">${pos.note ? pos.note : '<span class="italic text-slate-400">Không có ghi chú riêng</span>'}</div>
+                    `;
+                    container.appendChild(div);
+                }
+            }
+
+            if (!hasAny) {
+                container.innerHTML = '<p class="text-slate-400 italic text-center py-2">Chưa có thông tin hoặc ghi chú nào được nhập.</p>';
+            }
+        }
+
+        // Xuất báo cáo tổng hợp
+        function exportFullSummary() {
+            let report = "--- TỔNG HỢP YÊU CẦU THIẾT KẾ ÁO THỂ THAO ---\n\n";
+            for (let key in positions) {
+                const pos = positions[key];
+                report += `[${pos.name}]\n`;
+                report += `- Trạng thái Artwork: ${pos.artwork ? 'Có' : 'Không'}\n`;
+                report += `- Tọa độ & Tỉ lệ: X=${pos.x}px, Y=${pos.y}px, Scale=${pos.scale}%, Rotate=${pos.rotate}°\n`;
+                report += `- Ghi chú: ${pos.note || 'Không có'}\n\n`;
+            }
+
+            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Yeu_Cau_Thiet_Ke_Ao.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Tính năng kéo thả trực tiếp trên khung preview
+        const container = document.getElementById('canvas-container');
+        const layer = document.getElementById('artwork-layer');
+        let isDragging = false;
+        let startX, startY;
+
+        layer.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startX = e.clientX - positions[currentPos].x;
+            startY = e.clientY - positions[currentPos].y;
+            layer.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        layer.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            positions[currentPos].x = e.clientX - startX;
+            positions[currentPos].y = e.clientY - startY;
+            
+            // Cập nhật slider X, Y tương ứng
+            document.getElementById('range-x').value = positions[currentPos].x;
+            document.getElementById('x-val').innerText = positions[currentPos].x;
+            document.getElementById('range-y').value = positions[currentPos].y;
+            document.getElementById('y-val').innerText = positions[currentPos].y;
+
+            applyTransformToLayer();
+        });
+
+        layer.addEventListener('pointerup', (e) => {
+            isDragging = false;
+            layer.releasePointerCapture(e.pointerId);
+        });
+    </script>
+</body>
+</html>
